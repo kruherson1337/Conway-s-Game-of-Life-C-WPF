@@ -5,8 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ConwaysGameOfLife"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Cownay's Game of Life" Height="455" Width="808">
     <Grid>
-        
+        <Canvas x:Name="kanvas" HorizontalAlignment="Left" VerticalAlignment="Top" Width="800" Height="400"/>
+        <Button x:Name="buttonRun" Content="Run" HorizontalAlignment="Left" Margin="0,405,0,0" VerticalAlignment="Top" Width="75" Click="ButtonRun_Click"/>
+        <Button Content="Step" HorizontalAlignment="Left" Margin="80,405,0,0" VerticalAlignment="Top" Width="75" Click="ButtonStep_Click" />
+        <Button Content="Clear" HorizontalAlignment="Left" Margin="160,405,0,0" VerticalAlignment="Top" Width="75" Click="ButtonClear_Click"/>
+        <Label x:Name="labelGeneration" Content="Generation: 0" HorizontalAlignment="Left" Margin="320,403,0,0" VerticalAlignment="Top" Width="142"/>
+        <Button Content="Random" HorizontalAlignment="Left" Margin="240,405,0,0" VerticalAlignment="Top" Width="75" Click="ButtonRandom_Click"/>
     </Grid>
 </Window>
