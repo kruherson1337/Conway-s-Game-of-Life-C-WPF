@@ -4,8 +4,7 @@ Conway's Game of Life C# WPF .NET Framework - 2018
 
 Help
 -----
-
-More on algorithm find in [SLIC Article](https://infoscience.epfl.ch/record/177415/files/Superpixel_PAMI2011-2.pdf)
+More on algorithm find in [SLIC Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
 
 Requirements
 -----
@@ -25,4 +24,4 @@ Examples
 References
 -----
   - Wikipedia https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
-  - Stanford http://web.stanford.edu/~cdebs/GameOfLife/
+  - Stanford http://web.stanford.edu/~cdebs/GameOfLife
