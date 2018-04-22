@@ -86,18 +86,24 @@ namespace ConwaysGameOfLife
 
                     if (state == false && neighbors == 3)
                     {
-                        // Live
+                        // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
                         next[i][j] = true;
                     }
                     else if (state == true && (neighbors < 2 || neighbors > 3))
                     {
-                        // Die
+                        // Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
+                        // Any live cell with more than three live neighbours dies, as if by overpopulation.
                         next[i][j] = false;
+                    }
+                    else if (state == true && (neighbors == 2 || neighbors == 3))
+                    {
+                        // Any live cell with two or three live neighbours lives on to the next generation.
+                        next[i][j] = true;
                     }
                     else
                     {
                         // Nothing
-                        next[i][j] = state;
+                        next[i][j] = false;
                     }
                 }
             }
