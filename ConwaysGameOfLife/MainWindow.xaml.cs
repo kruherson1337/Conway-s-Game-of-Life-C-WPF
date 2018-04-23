@@ -1,18 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ConwaysGameOfLife
@@ -26,8 +18,12 @@ namespace ConwaysGameOfLife
         private readonly BackgroundWorker worker = new BackgroundWorker();
 
         // Game properties
+        private const int MAX_NUMBER_OF_GENERERATION_WITHOUT_CHANGE = 10;
         private bool[][] grid;
         private long generation;
+        private long liveCells;
+        private long oldLiveCells;
+        private long generationNothingChanged;
 
         // Status properties
         public long Generation
@@ -37,6 +33,15 @@ namespace ConwaysGameOfLife
             {
                 generation = value;
                 labelGeneration.Content = String.Format("Generation: {0}", generation);
+            }
+        }
+        public long LiveCells
+        {
+            get { return liveCells; }
+            set
+            {
+                liveCells = value;
+                labeliveCells.Content = String.Format("Live Cells: {0}", liveCells);
             }
         }
 
@@ -52,14 +57,28 @@ namespace ConwaysGameOfLife
             // Prepare background thread
             worker.DoWork += worker_DoWork;
             worker.ProgressChanged += worker_ProgressChanged;
+            worker.RunWorkerCompleted += worker_Completed;
             worker.WorkerReportsProgress = true;
             worker.WorkerSupportsCancellation = true;
 
             // Set preferences
             Generation = 0;
             resolution = 20;
-            width = (int)kanvas.Width / resolution;
-            height = (int)kanvas.Height / resolution;
+            LiveCells = 0;
+            oldLiveCells = 0;
+            generationNothingChanged = 0;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            loadGrid();
+        }
+
+        private void loadGrid()
+        {
+            // Calculate width and height based on resolution
+            width = (int)kanvas.ActualWidth / resolution;
+            height = (int)kanvas.ActualHeight / resolution;
 
             // Initialize grid
             grid = create2DArray();
@@ -69,6 +88,7 @@ namespace ConwaysGameOfLife
 
             // Draw grid
             draw();
+
         }
 
         private void compute()
@@ -140,6 +160,9 @@ namespace ConwaysGameOfLife
             // Clear up canvas
             kanvas.Children.Clear();
 
+            // Count live cells
+            int countLiveCells = 0;
+
             // Draw grid
             for (int i = 0; i < width; i++)
             {
@@ -152,9 +175,16 @@ namespace ConwaysGameOfLife
                     // Rectangle color (Live-Black, Dead-White)
                     Brush color;
                     if (grid[i][j])
+                    {
+                        // Live cell
                         color = Brushes.Black;
+                        countLiveCells++;
+                    }
                     else
+                    {
+                        // Death cell
                         color = Brushes.White;
+                    }
 
                     // Create rectangle
                     Rectangle rect = new Rectangle()
@@ -176,6 +206,27 @@ namespace ConwaysGameOfLife
                     Canvas.SetTop(rect, y);
                 }
             }
+
+            // Display live cells
+            LiveCells = countLiveCells;
+        }
+
+        private bool stoppingCondition()
+        {
+            // Check if live cell count changed
+            if (oldLiveCells == liveCells)
+                generationNothingChanged++;
+            else
+                generationNothingChanged = 0;
+
+            // Save current live cell count
+            oldLiveCells = liveCells;
+
+            // Check if we pass threshold
+            if (generationNothingChanged >= MAX_NUMBER_OF_GENERERATION_WITHOUT_CHANGE)
+                return true;
+            else
+                return false;
         }
 
         private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
@@ -199,6 +250,9 @@ namespace ConwaysGameOfLife
         {
             // Reset values
             Generation = 0;
+            LiveCells = 0;
+            oldLiveCells = 0;
+            generationNothingChanged = 0;
 
             // Clear grid
             for (int i = 0; i < width; i++)
@@ -227,8 +281,12 @@ namespace ConwaysGameOfLife
         private void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             // Check if stop running
-            while (!worker.CancellationPending)
+            while (!stoppingCondition())
             {
+                // Check if player stop game
+                if (worker.CancellationPending)
+                    break;
+
                 // Compute new generation
                 compute();
 
@@ -238,6 +296,8 @@ namespace ConwaysGameOfLife
                 // Delay - nicer animation
                 Thread.Sleep(150);
             }
+
+            MessageBox.Show("Game ended.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -245,6 +305,11 @@ namespace ConwaysGameOfLife
             // After computing next generation
             draw();
             Generation++;
+        }
+
+        void worker_Completed(object sender, RunWorkerCompletedEventArgs e)
+        {
+            buttonRun.Content = "Start";
         }
 
         public void Dispose()
@@ -281,6 +346,13 @@ namespace ConwaysGameOfLife
 
         private void ButtonStep_Click(object sender, RoutedEventArgs e)
         {
+            // Check if game ended
+            if (stoppingCondition())
+            {
+                MessageBox.Show("Game ended.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             // Compute next generation
             compute();
 
@@ -310,6 +382,29 @@ namespace ConwaysGameOfLife
 
             // Draw grid
             draw();
+        }
+
+        private void textboxResolution_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                // Change resolution
+                TextBox textBox = (TextBox)sender;
+                resolution = Int32.Parse(textBox.Text);
+
+                // Reload grid
+                loadGrid();
+            }
+            catch (Exception ignored)
+            {
+
+            }
+        }
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // Reload grid
+            loadGrid();
         }
     }
 }
